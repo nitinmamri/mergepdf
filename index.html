@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NITIN STUDIO - PDF & Image Merger</title>
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<style>
+:root{
+  --bg:#eef4ff;
+  --card:#ffffff;
+  --text:#1e293b;
+  --muted:#64748b;
+  --primary:#0ea5e9;
+  --accent:#6366f1;
+  --border:#dbeafe;
+  --shadow:0 12px 32px rgba(14,165,233,.18);
+}
+body.dark{
+  --bg:#0b1220;
+  --card:#111a2e;
+  --text:#e2e8f0;
+  --muted:#94a3b8;
+  --border:#23324f;
+  --shadow:0 12px 32px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box;font-family:'Segoe UI',Arial,sans-serif}
+body{
+  margin:0;padding:20px;
+  background:linear-gradient(135deg,#e0f2fe,#f0f9ff 45%,#e0e7ff);
+  color:var(--text);min-height:100vh;
+}
+body.dark{background:linear-gradient(135deg,#020617,#0f172a 50%,#1e1b4b)}
+.container{max-width:880px;margin:auto}
+
+.topbar{
+  display:flex;justify-content:space-between;align-items:center;gap:14px;
+  background:var(--card);padding:16px 20px;border-radius:18px;
+  box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:18px;
+}
+.brand{display:flex;align-items:center;gap:14px}
+.logo{
+  width:54px;height:54px;border-radius:16px;display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  color:#fff;font-size:25px;font-weight:800;
+  box-shadow:0 6px 16px rgba(14,165,233,.35);
+}
+.brand h1{
+  margin:0;font-size:21px;letter-spacing:.4px;
+  background:linear-gradient(90deg,#0ea5e9,#6366f1);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.brand p{margin:3px 0 0;font-size:12px;color:var(--muted)}
+.theme-btn{
+  border:1px solid var(--border);background:var(--card);color:var(--text);
+  padding:10px 15px;border-radius:11px;cursor:pointer;font-size:13px;font-weight:600;
+}
+
+.card{
+  background:var(--card);border-radius:20px;padding:26px;
+  box-shadow:var(--shadow);border:1px solid var(--border);
+}
+.badge{
+  display:inline-block;background:#e0f2fe;color:#0369a1;
+  padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:10px;
+}
+body.dark .badge{background:#0c4a6e;color:#bae6fd}
+.hero{text-align:center;margin-bottom:22px}
+.hero h2{margin:0;font-size:27px;color:#0ea5e9}
+.hero p{margin:7px 0 0;color:var(--muted);font-size:14px}
+
+.dropzone{
+  border:2px dashed #7dd3fc;border-radius:18px;padding:36px 18px;
+  text-align:center;cursor:pointer;transition:.25s;background:#f8fafc;
+}
+body.dark .dropzone{background:#0f172a}
+.dropzone:hover,.dropzone.dragover{
+  border-color:var(--primary);background:#e0f2fe;transform:translateY(-2px);
+}
+body.dark .dropzone:hover,body.dark .dropzone.dragover{background:#16233d}
+.dropzone .icon{font-size:40px}
+.dropzone h3{margin:10px 0 5px;font-size:18px}
+.dropzone p{margin:0;color:var(--muted);font-size:13px}
+.choose-btn{
+  margin-top:15px;padding:12px 24px;border:none;border-radius:11px;
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  color:#fff;font-size:14px;font-weight:700;cursor:pointer;
+}
+.hidden{display:none}
+
+.list-head{
+  display:flex;justify-content:space-between;align-items:center;margin:22px 0 12px;
+}
+.list-head h3{margin:0;font-size:16px}
+.list-head small{color:var(--muted);font-weight:500}
+.clear-btn{
+  border:none;background:#fee2e2;color:#b91c1c;
+  padding:8px 13px;border-radius:9px;font-size:12px;cursor:pointer;font-weight:700;
+}
+
+.file-item{
+  display:flex;align-items:center;gap:12px;
+  background:#f8fafc;border:1px solid var(--border);
+  padding:12px;border-radius:15px;margin-bottom:10px;
+  cursor:grab;transition:.2s;user-select:none;
+}
+body.dark .file-item{background:#0f172a}
+.file-item.dragging{opacity:.45;transform:scale(.98);border-style:dashed}
+.file-item.drag-over{border-color:var(--primary);background:#e0f2fe}
+body.dark .file-item.drag-over{background:#16233d}
+.drag-handle{color:#94a3b8;font-size:18px;cursor:grab;padding:4px 6px}
+.file-icon{
+  width:44px;height:44px;border-radius:12px;display:grid;place-items:center;
+  font-size:19px;flex-shrink:0;
+}
+.pdf-icon{background:#fee2e2;color:#dc2626}
+.img-icon{background:#dcfce7;color:#15803d}
+.file-info{flex:1;min-width:0}
+.file-name{
+  font-weight:700;font-size:14px;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;
+}
+.file-meta{font-size:12px;color:var(--muted);margin-top:3px}
+.actions{display:flex;gap:6px}
+.icon-btn{
+  width:34px;height:34px;border-radius:10px;border:1px solid var(--border);
+  background:var(--card);color:var(--text);cursor:pointer;font-size:14px;
+}
+.icon-btn:hover{background:#e0f2fe;border-color:#7dd3fc}
+body.dark .icon-btn:hover{background:#1e293b}
+.empty{
+  text-align:center;color:var(--muted);font-size:14px;
+  padding:20px;border:1px dashed var(--border);border-radius:15px;
+}
+
+.progress-wrap{display:none;margin-top:20px}
+.progress-label{
+  display:flex;justify-content:space-between;font-size:13px;
+  color:var(--muted);margin-bottom:8px;
+}
+.progress{height:10px;background:#e2e8f0;border-radius:20px;overflow:hidden}
+body.dark .progress{background:#1e293b}
+.progress-bar{
+  height:100%;width:0;border-radius:20px;
+  background:linear-gradient(90deg,var(--primary),var(--accent));
+  transition:width .3s;
+}
+
+.merge-btn{
+  width:100%;margin-top:20px;padding:16px;border:none;border-radius:15px;
+  font-size:16px;font-weight:800;color:#fff;cursor:pointer;
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  box-shadow:0 10px 24px rgba(14,165,233,.32);
+}
+.merge-btn:disabled{background:#94a3b8;box-shadow:none;cursor:not-allowed}
+.status{
+  margin-top:15px;padding:13px;border-radius:13px;font-size:14px;
+  text-align:center;font-weight:700;display:none;
+}
+.status.info{display:block;background:#e0f2fe;color:#0369a1}
+.status.success{display:block;background:#dcfce7;color:#166534}
+.status.error{display:block;background:#fee2e2;color:#b91c1c}
+.note{margin-top:15px;text-align:center;font-size:12px;color:var(--muted)}
+
+.footer{
+  margin-top:20px;text-align:center;color:var(--muted);font-size:12px;
+  background:var(--card);padding:14px;border-radius:15px;
+  border:1px solid var(--border);box-shadow:var(--shadow);
+}
+.footer b{color:#0ea5e9}
+
+@media(max-width:600px){
+  body{padding:12px}
+  .topbar{flex-direction:column;text-align:center}
+  .card{padding:18px}
+  .hero h2{font-size:21px}
+  .file-item{flex-wrap:wrap}
+  .actions{margin-left:auto}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">N</div>
+      <div>
+        <h1>NITIN STUDIO</h1>
+        <p>PDF & Image Merger Tool</p>
+      </div>
+    </div>
+    <button class="theme-btn" id="themeBtn">🌙 Dark Mode</button>
+  </div>
+
+  <div class="card">
+
+    <div class="hero">
+      <div class="badge">NITIN STUDIO TOOL</div>
+      <h2>PDF & Image Merger</h2>
+      <p>PDF और JPG/PNG/WebP images एक साथ select करें। Images A4 size page पर merge होंगी।</p>
+    </div>
+
+    <div class="dropzone" id="dropzone">
+      <div class="icon">📁</div>
+      <h3>PDF या Image Files यहाँ Drag & Drop करें</h3>
+      <p>Supported: PDF, JPG, JPEG, PNG, WebP</p>
+      <button class="choose-btn" type="button">+ Files Choose करें</button>
+      <input type="file" id="fileInput" accept="application/pdf,image/jpeg,image/png,image/webp" multiple class="hidden">
+    </div>
+
+    <div class="list-head" id="listHead" style="display:none">
+      <div>
+        <h3>Selected Files</h3>
+        <small>File को 🧲 handle से drag करके order बदलें</small>
+      </div>
+      <button class="clear-btn" id="clearBtn">सभी हटाएं</button>
+    </div>
+
+    <div id="fileList"></div>
+
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-label">
+        <span id="progressText">Processing...</span>
+        <span id="progressPercent">0%</span>
+      </div>
+      <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+    </div>
+
+    <button class="merge-btn" id="mergeBtn" disabled>
+      🔗 Merge & PDF Download करें
+    </button>
+
+    <div class="status" id="status"></div>
+
+    <p class="note">🔒 Files आपके browser में ही process होती हैं। कोई file server पर upload नहीं होती।</p>
+
+  </div>
+
+  <div class="footer">
+    © <span id="year"></span> <b>NITIN STUDIO</b> — All Rights Reserved | PDF & Image Merger
+  </div>
+
+</div>
+
+<script>
+const fileInput=document.getElementById('fileInput');
+const dropzone=document.getElementById('dropzone');
+const fileList=document.getElementById('fileList');
+const listHead=document.getElementById('listHead');
+const mergeBtn=document.getElementById('mergeBtn');
+const clearBtn=document.getElementById('clearBtn');
+const statusBox=document.getElementById('status');
+const progressWrap=document.getElementById('progressWrap');
+const progressBar=document.getElementById('progressBar');
+const progressText=document.getElementById('progressText');
+const progressPercent=document.getElementById('progressPercent');
+const themeBtn=document.getElementById('themeBtn');
+
+document.getElementById('year').textContent=new Date().getFullYear();
+
+let files=[];
+let dragIndex=null;
+
+const isPdf=f=>f.type==='application/pdf';
+const isImage=f=>['image/jpeg','image/png','image/webp'].includes(f.type);
+
+dropzone.addEventListener('click',()=>fileInput.click());
+fileInput.addEventListener('change',()=>{
+  addFiles(fileInput.files);
+  fileInput.value='';
+});
+
+['dragenter','dragover'].forEach(ev=>{
+  dropzone.addEventListener(ev,e=>{
+    e.preventDefault();
+    dropzone.classList.add('dragover');
+  });
+});
+['dragleave','drop'].forEach(ev=>{
+  dropzone.addEventListener(ev,e=>{
+    e.preventDefault();
+    dropzone.classList.remove('dragover');
+  });
+});
+dropzone.addEventListener('drop',e=>addFiles(e.dataTransfer.files));
+
+function addFiles(newFiles){
+  const valid=Array.from(newFiles).filter(f=>isPdf(f)||isImage(f));
+  if(!valid.length){
+    showStatus('कृपया केवल PDF, JPG, PNG या WebP files select करें।','error');
+    return;
+  }
+  files=[...files,...valid];
+  renderFiles();
+}
+
+function formatSize(bytes){
+  if(bytes<1024)return bytes+' B';
+  if(bytes<1048576)return (bytes/1024).toFixed(1)+' KB';
+  return (bytes/1048576).toFixed(2)+' MB';
+}
+
+function renderFiles(){
+  fileList.innerHTML='';
+  listHead.style.display=files.length?'flex':'none';
+
+  if(!files.length){
+    fileList.innerHTML='<div class="empty">अभी कोई PDF या Image select नहीं है।</div>';
+  }
+
+  files.forEach((file,i)=>{
+    const img=isImage(file);
+    const item=document.createElement('div');
+    item.className='file-item';
+    item.draggable=true;
+    item.dataset.index=i;
+
+    item.innerHTML=`
+      <div class="drag-handle" title="Drag करके order बदलें">⠿</div>
+      <div class="file-icon ${img?'img-icon':'pdf-icon'}">${img?'🖼️':'📄'}</div>
+      <div class="file-info">
+        <div class="file-name">${i+1}. ${file.name}</div>
+        <div class="file-meta">${img?'Image → A4 PDF Page':'PDF Document'} • ${formatSize(file.size)}</div>
+      </div>
+    `;
+
+    const actions=document.createElement('div');
+    actions.className='actions';
+
+    const up=btn('↑','पहले लाएं',()=>move(i,-1));
+    const down=btn('↓','बाद में ले जाएं',()=>move(i,1));
+    const del=btn('✕','हटाएं',()=>{
+      files.splice(i,1);
+      renderFiles();
+    });
+
+    actions.append(up,down,del);
+    item.append(actions);
+    fileList.append(item);
+
+    item.addEventListener('dragstart',()=>{
+      dragIndex=i;
+      item.classList.add('dragging');
+    });
+
+    item.addEventListener('dragend',()=>{
+      item.classList.remove('dragging');
+      document.querySelectorAll('.file-item').forEach(x=>x.classList.remove('drag-over'));
+      dragIndex=null;
+    });
+
+    item.addEventListener('dragover',e=>{
+      e.preventDefault();
+      if(dragIndex===null||dragIndex===i)return;
+      item.classList.add('drag-over');
+    });
+
+    item.addEventListener('dragleave',()=>item.classList.remove('drag-over'));
+
+    item.addEventListener('drop',e=>{
+      e.preventDefault();
+      item.classList.remove('drag-over');
+      if(dragIndex===null||dragIndex===i)return;
+      const moved=files.splice(dragIndex,1)[0];
+      files.splice(i,0,moved);
+      renderFiles();
+    });
+  });
+
+  mergeBtn.disabled=files.length<1;
+}
+
+function btn(text,title,fn){
+  const b=document.createElement('button');
+  b.className='icon-btn';
+  b.textContent=text;
+  b.title=title;
+  b.onclick=fn;
+  return b;
+}
+
+function move(i,dir){
+  const j=i+dir;
+  if(j<0||j>=files.length)return;
+  [files[i],files[j]]=[files[j],files[i]];
+  renderFiles();
+}
+
+clearBtn.onclick=()=>{
+  files=[];
+  renderFiles();
+  hideStatus();
+};
+
+function showStatus(msg,type){
+  statusBox.className='status '+type;
+  statusBox.textContent=msg;
+}
+function hideStatus(){
+  statusBox.className='status';
+  statusBox.textContent='';
+}
+
+function setProgress(p,text){
+  progressWrap.style.display='block';
+  progressBar.style.width=p+'%';
+  progressPercent.textContent=Math.round(p)+'%';
+  progressText.textContent=text;
+}
+
+async function addImageToPdf(mergedPdf,file){
+  const bytes=await file.arrayBuffer();
+  let image;
+
+  if(file.type==='image/jpeg'){
+    image=await mergedPdf.embedJpg(bytes);
+  }else if(file.type==='image/png'){
+    image=await mergedPdf.embedPng(bytes);
+  }else if(file.type==='image/webp'){
+    const bitmap=await createImageBitmap(new Blob([bytes],{type:'image/webp'}));
+    const canvas=document.createElement('canvas');
+    canvas.width=bitmap.width;
+    canvas.height=bitmap.height;
+    canvas.getContext('2d').drawImage(bitmap,0,0);
+    const pngBlob=await new Promise(r=>canvas.toBlob(r,'image/png'));
+    image=await mergedPdf.embedPng(await pngBlob.arrayBuffer());
+  }
+
+  /* A4 Page Size */
+  const a4Width=595.28;
+  const a4Height=841.89;
+
+  /* Page Margin */
+  const margin=20;
+
+  const maxWidth=a4Width-(margin*2);
+  const maxHeight=a4Height-(margin*2);
+
+  /* Image को A4 में fit करना */
+  const scale=Math.min(
+    maxWidth/image.width,
+    maxHeight/image.height
+  );
+
+  const imgWidth=image.width*scale;
+  const imgHeight=image.height*scale;
+
+  /* Image को center में रखना */
+  const x=(a4Width-imgWidth)/2;
+  const y=(a4Height-imgHeight)/2;
+
+  const page=mergedPdf.addPage([a4Width,a4Height]);
+
+  page.drawImage(image,{
+    x:x,
+    y:y,
+    width:imgWidth,
+    height:imgHeight
+  });
+}
+
+themeBtn.onclick=()=>{
+  document.body.classList.toggle('dark');
+  themeBtn.textContent=document.body.classList.contains('dark')
+    ? '☀️ Light Mode' : '🌙 Dark Mode';
+};
+
+mergeBtn.addEventListener('click',async()=>{
+  try{
+    mergeBtn.disabled=true;
+    hideStatus();
+    setProgress(5,'Files process हो रही हैं...');
+
+    const mergedPdf=await PDFLib.PDFDocument.create();
+
+    for(let i=0;i<files.length;i++){
+      const file=files[i];
+      setProgress(10+((i/files.length)*75),`Processing: ${file.name}`);
+
+      if(isPdf(file)){
+        const bytes=await file.arrayBuffer();
+        const pdf=await PDFLib.PDFDocument.load(bytes,{ignoreEncryption:true});
+        const pages=await mergedPdf.copyPages(pdf,pdf.getPageIndices());
+        pages.forEach(page=>mergedPdf.addPage(page));
+      }else{
+        await addImageToPdf(mergedPdf,file);
+      }
+
+      await new Promise(r=>setTimeout(r,30));
+    }
+
+    setProgress(90,'Final PDF तैयार हो रही है...');
+    const mergedBytes=await mergedPdf.save();
+    const blob=new Blob([mergedBytes],{type:'application/pdf'});
+    const url=URL.createObjectURL(blob);
+
+    const a=document.createElement('a');
+    a.href=url;
+    a.download='nitin-studio-merged.pdf';
+    a.click();
+    URL.revokeObjectURL(url);
+
+    setProgress(100,'Complete!');
+    showStatus(`✅ Successfully merged! Total pages: ${mergedPdf.getPageCount()}`,'success');
+
+    setTimeout(()=>progressWrap.style.display='none',1200);
+  }catch(err){
+    console.error(err);
+    showStatus('❌ Error: '+err.message,'error');
+    progressWrap.style.display='none';
+  }finally{
+    mergeBtn.disabled=files.length<1;
+  }
+});
+
+renderFiles();
+</script>
+
+</body>
+</html>
